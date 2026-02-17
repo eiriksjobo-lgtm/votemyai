@@ -608,7 +608,10 @@
     <li><a href="#leaderboard">Leaderboard</a></li>
     <li><a href="#tools">Tools</a></li>
   </ul>
-  <button class="nav-submit" onclick="openModal()">+ Submit Track</button>
+  <div style="display:flex;gap:10px;align-items:center">
+    <div id="navAuth"></div>
+    <button class="nav-submit" onclick="openModal()">+ Submit Track</button>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -984,126 +987,4 @@
     if (fetchErr || !track) {
       showToast('⚠️ Noe gikk galt. Prøv igjen.');
       if (btn) { btn.disabled = false; btn.textContent = '▲ Vote'; }
-      return;
-    }
-
-    // Oppdater stemmeantall
-    const { error: updateErr } = await sb
-      .from('tracks')
-      .update({ votes: track.votes + 1 })
-      .eq('id', id);
-
-    if (updateErr) {
-      showToast('⚠️ Kunne ikke registrere stemme.');
-      if (btn) { btn.disabled = false; btn.textContent = '▲ Vote'; }
-      return;
-    }
-
-    // Lagre at denne brukeren har stemt
-    addVoted(id);
-
-    // Oppdater UI
-    if (btn) { btn.classList.add('voted'); btn.textContent = '✓ Voted'; }
-    const countEl = document.getElementById(`votecount-${id}`);
-    if (countEl) countEl.textContent = track.votes + 1;
-
-    showToast('🔥 Stemme registrert!');
-
-    // Last inn på nytt for leaderboard
-    const tracks = await loadTracks();
-    renderLeaderboard(tracks);
-  };
-
-  /* ── Send inn ny track ── */
-  window.submitTrack = async function() {
-    const url   = document.getElementById('ytInput').value.trim();
-    const title = document.getElementById('trackTitle').value.trim();
-    const tool  = document.getElementById('trackTool').value;
-    const genre = document.getElementById('trackGenre').value;
-
-    if (!url || !title || !tool || !genre) {
-      showToast('⚠️ Fyll inn alle påkrevde felt.');
-      return;
-    }
-
-    const ytId = extractYtId(url);
-    if (!ytId) {
-      showToast('⚠️ Ugyldig YouTube-lenke.');
-      return;
-    }
-
-    const submitBtn = document.querySelector('#submit .btn-primary');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sender inn...'; }
-
-    const { error } = await sb.from('tracks').insert({
-      title,
-      yt_id:  ytId,
-      tool,
-      genre,
-      author: '@anon',
-      votes:  0,
-    });
-
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit for Voting'; }
-
-    if (error) {
-      showToast('⚠️ Kunne ikke sende inn. Prøv igjen.');
-      console.error(error);
-      return;
-    }
-
-    showToast('✅ Track sendt inn! Den vises nå på siden.');
-
-    // Nullstill skjema
-    ['ytInput','trackTitle','trackPrompt'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    ['trackTool','trackGenre'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.selectedIndex = 0;
-    });
-    document.getElementById('previewBox').innerHTML =
-      '<span>Your video preview will appear here</span>';
-
-    // Last inn på nytt
-    const tracks = await loadTracks();
-    renderTracks(tracks);
-    renderLeaderboard(tracks);
-  };
-
-  /* ── YouTube forhåndsvisning ── */
-  window.previewYT = function() {
-    const url  = document.getElementById('ytInput').value;
-    const ytId = extractYtId(url);
-    const box  = document.getElementById('previewBox');
-    if (ytId) {
-      box.innerHTML = `<div class="preview-iframe" style="position:relative;padding-bottom:56.25%">
-        <iframe style="position:absolute;inset:0;width:100%;height:100%;border:none"
-          src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen loading="lazy"></iframe>
-      </div>`;
-    } else {
-      box.innerHTML = '<span>Your video preview will appear here</span>';
-    }
-  };
-
-  /* ── Modal ── */
-  window.openModal = function() {
-    document.getElementById('modalOverlay').classList.add('open');
-  };
-  window.closeModal = function(e) {
-    if (e.target === document.getElementById('modalOverlay')) window.closeModalDirect();
-  };
-  window.closeModalDirect = function() {
-    document.getElementById('modalOverlay').classList.remove('open');
-  };
-
-  /* ── Oppstart ── */
-  (async () => {
-    const tracks = await loadTracks();
-    renderTracks(tracks);
-    renderLeaderboard(tracks);
-  })();
-</script>
-</body>
-</html>
+ 
