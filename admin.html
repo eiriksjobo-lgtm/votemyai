@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoteMyAI – Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:      #0a0a0f;
+      --surface: #111118;
+      --border:  #1e1e2e;
+      --accent:  #e8ff47;
+      --red:     #ff4d6d;
+      --text:    #f0f0f0;
+      --muted:   #666680;
+      --radius:  6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN ── */
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-box h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .login-box p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 32px;
+    }
+    .login-box input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      margin-bottom: 16px;
+      outline: none;
+      text-align: center;
+      letter-spacing: 3px;
+    }
+    .login-box input:focus { border-color: rgba(232,255,71,0.4); }
+    .login-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      padding: 12px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .login-btn:hover { opacity: 0.85; }
+    .login-error {
+      color: var(--red);
+      font-size: 0.82rem;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ── ADMIN PANEL ── */
+    .admin-wrap { display: none; }
+    .admin-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 2px;
+      color: var(--accent);
+    }
+    .admin-logo span { color: var(--muted); font-size: 0.8rem; letter-spacing: 1px; margin-left: 10px; }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 7px 16px;
+      border-radius: var(--radius);
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .logout-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    .admin-content { max-width: 1000px; margin: 0 auto; padding: 48px 40px; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .stat-label {
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 1px;
+      color: var(--accent);
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .tracks-table { width: 100%; border-collapse: collapse; }
+    .tracks-table th {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tracks-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }
+    .tracks-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .thumb {
+      width: 64px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 4px;
+      background: #222;
+    }
+    .track-title-cell { font-weight: 500; }
+    .track-tool {
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .votes-cell {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: var(--accent);
+    }
+    .date-cell { font-size: 0.78rem; color: var(--muted); }
+
+    .delete-btn {
+      background: rgba(255,77,109,0.1);
+      border: 1px solid rgba(255,77,109,0.25);
+      color: var(--red);
+      padding: 7px 14px;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .delete-btn:hover { background: rgba(255,77,109,0.22); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── CONFIRM MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+      padding: 20px;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px;
+      max-width: 400px;
+      width: 100%;
+      transform: translateY(16px);
+      transition: transform 0.2s;
+      text-align: center;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+      color: var(--red);
+      margin-bottom: 10px;
+    }
+    .modal p { color: var(--muted); font-size: 0.88rem; margin-bottom: 28px; }
+    .modal-track-name { color: var(--text); font-weight: 700; }
+    .modal-btns { display: flex; gap: 12px; justify-content: center; }
+    .btn-cancel {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 10px 24px;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .btn-delete-confirm {
+      background: var(--red);
+      border: none;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-delete-confirm:hover { opacity: 0.85; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 32px; right: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      z-index: 9999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 600px) {
+      .admin-content { padding: 32px 20px; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .admin-header { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <h1>ADMIN</h1>
+    <p>VoteMyAI kontrollpanel</p>
+    <input type="password" id="passwordInput" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter') checkPassword()" />
+    <button class="login-btn" onclick="checkPassword()">Logg inn</button>
+    <div class="login-error" id="loginError">Feil passord. Prøv igjen.</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-wrap" id="adminWrap">
+  <div class="admin-header">
+    <div class="admin-logo">VOTEMYAI <span>ADMIN</span></div>
+    <button class="logout-btn" onclick="logout()">Logg ut</button>
+  </div>
+
+  <div class="admin-content">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Totale tracks</div>
+        <div class="stat-value" id="statTracks">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Totale stemmer</div>
+        <div class="stat-value" id="statVotes">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Topp track</div>
+        <div class="stat-value" id="statTop" style="font-size:1.1rem;margin-top:4px">–</div>
+      </div>
+    </div>
+
+    <!-- Tracks table -->
+    <div class="section-title">Alle Tracks</div>
+    <table class="tracks-table">
+      <thead>
+        <tr>
+          <th>Thumbnail</th>
+          <th>Tittel</th>
+          <th>Tool</th>
+          <th>Stemmer</th>
+          <th>Dato</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tracksBody">
+        <tr><td colspan="6"><div class="empty-state">Laster...</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h2>Slett track?</h2>
+    <p>Er du sikker på at du vil slette<br>
+      <span class="modal-track-name" id="deleteTrackName"></span>?<br>
+      Dette kan ikke angres.
+    </p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">Avbryt</button>
+      <button class="btn-delete-confirm" onclick="confirmDelete()">Slett</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const SUPABASE_URL = 'https://pkpkgaaowtcmuqzgqvda.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_px-Cw2XvKCGQKff0bb22uQ_ufIJchQw';
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ── VIKTIG: Endre dette passordet! ──
+  const ADMIN_PASSWORD = 'votemyai2025';
+
+  let pendingDeleteId   = null;
+  let pendingDeleteName = null;
+
+  /* ── Toast ── */
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  /* ── Login ── */
+  window.checkPassword = function() {
+    const val = document.getElementById('passwordInput').value;
+    if (val === ADMIN_PASSWORD) {
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('adminWrap').style.display = 'block';
+      loadTracks();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+    }
+  };
+
+  window.logout = function() {
+    document.getElementById('loginWrap').style.display = 'flex';
+    document.getElementById('adminWrap').style.display = 'none';
+    document.getElementById('passwordInput').value = '';
+  };
+
+  /* ── Last inn tracks ── */
+  async function loadTracks() {
+    const { data, error } = await sb
+      .from('tracks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      showToast('⚠️ Kunne ikke laste tracks.');
+      return;
+    }
+
+    const tracks = data || [];
+
+    // Oppdater stats
+    const totalVotes = tracks.reduce((sum, t) => sum + (t.votes || 0), 0);
+    const topTrack   = [...tracks].sort((a,b) => b.votes - a.votes)[0];
+    document.getElementById('statTracks').textContent = tracks.length;
+    document.getElementById('statVotes').textContent  = totalVotes;
+    document.getElementById('statTop').textContent    = topTrack ? topTrack.title : '–';
+
+    // Render tabell
+    const tbody = document.getElementById('tracksBody');
+    if (tracks.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">Ingen tracks ennå.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = tracks.map(t => `
+      <tr>
+        <td>
+          <img class="thumb"
+            src="https://img.youtube.com/vi/${esc(t.yt_id)}/mqdefault.jpg"
+            alt="" onerror="this.style.display='none'">
+        </td>
+        <td><div class="track-title-cell">${esc(t.title)}</div></td>
+        <td><span class="track-tool">${esc(t.tool)}</span></td>
+        <td><span class="votes-cell">${t.votes || 0}</span></td>
+        <td><span class="date-cell">${formatDate(t.created_at)}</span></td>
+        <td>
+          <button class="delete-btn" onclick="window.askDelete('${t.id}', '${esc(t.title)}')">
+            🗑 Slett
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── Slett-bekreftelse ── */
+  window.askDelete = function(id, name) {
+    pendingDeleteId   = id;
+    pendingDeleteName = name;
+    document.getElementById('deleteTrackName').textContent = name;
+    document.getElementById('confirmModal').classList.add('open');
+  };
+
+  window.closeConfirm = function() {
+    document.getElementById('confirmModal').classList.remove('open');
+    pendingDeleteId   = null;
+    pendingDeleteName = null;
+  };
+
+  window.confirmDelete = async function() {
+    if (!pendingDeleteId) return;
+    document.getElementById('confirmModal').classList.remove('open');
+
+    const { error } = await sb
+      .from('tracks')
+      .delete()
+      .eq('id', pendingDeleteId);
+
+    if (error) {
+      showToast('⚠️ Kunne ikke slette track.');
+      return;
+    }
+
+    showToast(`✅ "${pendingDeleteName}" er slettet.`);
+    pendingDeleteId   = null;
+    pendingDeleteName = null;
+    loadTracks();
+  };
+
+  /* ── Helpers ── */
+  function esc(str) {
+    return String(str).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '–';
+    const d = new Date(iso);
+    return d.toLocaleDateString('no-NO', { day:'2-digit', month:'short', year:'numeric' });
+  }
+</script>
+</body>
+</html>
