@@ -1039,6 +1039,7 @@
 <footer>
   <div class="footer-logo">VOTE<span>MY</span>AI</div>
   <div class="footer-links">
+    <a href="/terms.html">Terms</a>
     <a href="/privacy.html">Privacy</a>
     <a href="mailto:contact@votemyai.com">Contact</a>
   </div>
@@ -1061,7 +1062,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- ── JAVASCRIPT ──────────────────────────────────────────────── -->
-<script type="module">
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
   /* ── Supabase-tilkobling ── */
@@ -1388,9 +1389,4 @@
     const totalVotes = tracks.reduce((sum, t) => sum + (t.votes || 0), 0);
     const aboutTracks = document.getElementById('aboutStatTracks');
     const aboutVotes = document.getElementById('aboutStatVotes');
-    if (aboutTracks) aboutTracks.textContent = tracks.length;
-    if (aboutVotes) aboutVotes.textContent = totalVotes;
-  })();
-</script>
-</body>
-</html>
+  
