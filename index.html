@@ -143,6 +143,32 @@
     }
     .nav-submit:hover { box-shadow: var(--glow); transform: translateY(-1px); }
 
+    /* ── GENRE FILTER ── */
+    .genre-filter-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .genre-filter-btn:hover {
+      border-color: rgba(232,255,71,0.3);
+      color: var(--text);
+    }
+    .genre-filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0a0a0f;
+    }
+    .genre-section {
+      animation: fadeUp 0.4s ease both;
+    }
+
     /* ── HERO ──────────────────────────────────────────────────── */
     .hero {
       min-height: 100vh;
@@ -667,11 +693,65 @@
   </div>
 </div>
 
-<!-- TRACKS -->
+<!-- GENRE FILTER -->
+<div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:20px 0;position:sticky;top:64px;z-index:50;backdrop-filter:blur(16px);">
+  <div style="max-width:1200px;margin:0 auto;padding:0 40px;">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;">
+      <span style="font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-right:8px;">Filter:</span>
+      <button class="genre-filter-btn active" onclick="filterGenre('all')">🔥 All</button>
+      <button class="genre-filter-btn" onclick="filterGenre('Electronic')">🎹 Electronic</button>
+      <button class="genre-filter-btn" onclick="filterGenre('Hip-Hop')">🎤 Hip-Hop</button>
+      <button class="genre-filter-btn" onclick="filterGenre('Pop')">🎵 Pop</button>
+      <button class="genre-filter-btn" onclick="filterGenre('Rock')">🎸 Rock</button>
+      <button class="genre-filter-btn" onclick="filterGenre('Cinematic')">🎬 Cinematic</button>
+      <button class="genre-filter-btn" onclick="filterGenre('Other')">✨ Other</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRACKS BY GENRE -->
 <section id="tracks">
-  <div class="section-label">🔥 Top This Week</div>
-  <div class="section-title">Trending<br>Tracks</div>
-  <div class="tracks-grid" id="tracksGrid"></div>
+  <div id="genreAll" class="genre-section">
+    <div class="section-label">🔥 Trending Now</div>
+    <div class="section-title">All Tracks</div>
+    <div class="tracks-grid" id="tracksGridAll"></div>
+  </div>
+
+  <div id="genreElectronic" class="genre-section" style="display:none">
+    <div class="section-label">🎹 Electronic Vibes</div>
+    <div class="section-title">Electronic</div>
+    <div class="tracks-grid" id="tracksGridElectronic"></div>
+  </div>
+
+  <div id="genreHip-Hop" class="genre-section" style="display:none">
+    <div class="section-label">🎤 Bars & Beats</div>
+    <div class="section-title">Hip-Hop</div>
+    <div class="tracks-grid" id="tracksGridHip-Hop"></div>
+  </div>
+
+  <div id="genrePop" class="genre-section" style="display:none">
+    <div class="section-label">🎵 Pop Hits</div>
+    <div class="section-title">Pop</div>
+    <div class="tracks-grid" id="tracksGridPop"></div>
+  </div>
+
+  <div id="genreRock" class="genre-section" style="display:none">
+    <div class="section-label">🎸 Rock Energy</div>
+    <div class="section-title">Rock</div>
+    <div class="tracks-grid" id="tracksGridRock"></div>
+  </div>
+
+  <div id="genreCinematic" class="genre-section" style="display:none">
+    <div class="section-label">🎬 Epic Soundtracks</div>
+    <div class="section-title">Cinematic</div>
+    <div class="tracks-grid" id="tracksGridCinematic"></div>
+  </div>
+
+  <div id="genreOther" class="genre-section" style="display:none">
+    <div class="section-label">✨ Unique Sounds</div>
+    <div class="section-title">Other</div>
+    <div class="tracks-grid" id="tracksGridOther"></div>
+  </div>
 </section>
 
 <!-- LEADERBOARD -->
@@ -879,47 +959,67 @@
     localStorage.setItem('vma_voted', JSON.stringify(v));
   }
 
-  /* ── Render tracks ── */
+  /* ── Render tracks per sjanger ── */
   function renderTracks(tracks) {
-    const sorted = [...tracks].sort((a,b) => b.votes - a.votes).slice(0, 6);
+    const genres = ['All', 'Electronic', 'Hip-Hop', 'Pop', 'Rock', 'Cinematic', 'Other'];
     const voted  = getVoted();
-    const grid   = document.getElementById('tracksGrid');
 
-    if (sorted.length === 0) {
-      grid.innerHTML = `<div style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">
-        Ingen tracks ennå – vær den første til å sende inn! 🎵</div>`;
-      return;
-    }
+    genres.forEach(genre => {
+      const gridId = `tracksGrid${genre}`;
+      const grid = document.getElementById(gridId);
+      if (!grid) return;
 
-    grid.innerHTML = sorted.map((t, i) => `
-      <div class="track-card rank-${i+1}">
-        <div class="rank-badge">${i+1}</div>
-        <div class="video-wrapper">
-          <iframe src="https://www.youtube.com/embed/${esc(t.yt_id)}?rel=0&modestbranding=1"
-            allowfullscreen loading="lazy"></iframe>
-        </div>
-        <div class="track-info">
-          <div class="track-title">${esc(t.title)}</div>
-          <div class="track-meta">
-            <span class="tool-tag">${esc(t.tool)}</span>
-            ${esc(t.genre)} · ${esc(t.author)}
+      let filtered = genre === 'All' 
+        ? tracks 
+        : tracks.filter(t => t.genre === genre);
+
+      const sorted = [...filtered].sort((a,b) => b.votes - a.votes);
+
+      if (sorted.length === 0) {
+        grid.innerHTML = `<div style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">
+          Ingen ${genre === 'All' ? 'tracks' : genre + ' tracks'} ennå. Vær den første! 🎵</div>`;
+        return;
+      }
+
+      grid.innerHTML = sorted.map((t, i) => `
+        <div class="track-card rank-${i+1}">
+          <div class="rank-badge">${i+1}</div>
+          <div class="video-wrapper">
+            <iframe src="https://www.youtube.com/embed/${esc(t.yt_id)}?rel=0&modestbranding=1"
+              allowfullscreen loading="lazy"></iframe>
           </div>
-          <div class="vote-row">
-            <button class="vote-btn ${voted.includes(t.id) ? 'voted' : ''}"
-              id="votebtn-${t.id}"
-              onclick="window.vote('${t.id}')"
-              ${voted.includes(t.id) ? 'disabled' : ''}>
-              ${voted.includes(t.id) ? '✓ Voted' : '▲ Vote'}
-            </button>
-            <div>
-              <span class="vote-count" id="votecount-${t.id}">${t.votes}</span>
-              <span class="vote-label">votes</span>
+          <div class="track-info">
+            <div class="track-title">${esc(t.title)}</div>
+            <div class="track-meta">
+              <span class="tool-tag">${esc(t.tool)}</span>
+              ${esc(t.genre)} · ${esc(t.author)}
+            </div>
+            <div class="vote-row">
+              <button class="vote-btn ${voted.includes(t.id) ? 'voted' : ''}"
+                id="votebtn-${t.id}"
+                onclick="window.vote('${t.id}')"
+                ${voted.includes(t.id) ? 'disabled' : ''}>
+                ${voted.includes(t.id) ? '✓ Voted' : '▲ Vote'}
+              </button>
+              <div>
+                <span class="vote-count" id="votecount-${t.id}">${t.votes}</span>
+                <span class="vote-label">votes</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    });
   }
+
+  /* ── Filter sjanger ── */
+  window.filterGenre = function(genre) {
+    document.querySelectorAll('.genre-filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.querySelectorAll('.genre-section').forEach(s => s.style.display = 'none');
+    document.getElementById('genre' + genre).style.display = 'block';
+  };
 
   /* ── Render leaderboard ── */
   function renderLeaderboard(tracks) {
