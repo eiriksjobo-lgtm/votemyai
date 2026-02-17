@@ -169,6 +169,47 @@
       animation: fadeUp 0.4s ease both;
     }
 
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; gap: 12px; }
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .faq-item:hover { border-color: rgba(232,255,71,0.2); }
+    .faq-question {
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.95rem;
+      user-select: none;
+    }
+    .faq-arrow {
+      color: var(--accent);
+      font-size: 0.8rem;
+      transition: transform 0.3s;
+    }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 24px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+    .faq-item.open .faq-answer {
+      max-height: 500px;
+      padding: 0 24px 20px 24px;
+    }
+    .faq-answer strong { color: var(--text); }
+
     /* ── HERO ──────────────────────────────────────────────────── */
     .hero {
       min-height: 100vh;
@@ -876,6 +917,76 @@
   </div>
 </div>
 
+<!-- FAQ -->
+<section style="background:var(--bg);padding:100px 40px;">
+  <div style="max-width:800px;margin:0 auto;">
+    <div class="section-label">❓ Got Questions?</div>
+    <div class="section-title" style="margin-bottom:48px;">FAQ</div>
+    
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How do I submit my AI music track?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <p>First, create your track using an AI tool like Suno or Udio. Upload it to YouTube (public or unlisted), then click "Submit Your Track" on our homepage. You'll need to log in with Google first. Paste your YouTube link, add details, and submit!</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How does voting work?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <p>Anyone can vote on tracks – no login required! Just click the "▲ Vote" button on any track. If you're logged in, you can only vote once per track. Logged-out users are limited by browser cookies. The more votes a track gets, the higher it ranks!</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>What AI music tools can I use?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <p>You can use any AI music generator! Popular choices include <strong>Suno</strong>, <strong>Udio</strong>, <strong>ElevenLabs</strong>, and others. Check out our "AI Music Tools" section below for recommendations and links.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Can I delete my track?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <p>Yes! Log in, go to your profile, and you'll see all your submitted tracks. Each one has a delete button. You can remove any track at any time.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Do you store my Google login data?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <p>No. We use Google OAuth for secure login. We only store your email and username – never your password. Google handles all authentication. You can delete your account anytime from your profile.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Are there any content rules?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          <p>Keep it clean and respectful! No hate speech, explicit content, or copyright violations. Tracks must be AI-generated (or AI-assisted). We reserve the right to remove content that violates these guidelines.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- SEO CONTENT -->
 <div style="background:var(--surface);border-top:1px solid var(--border);">
   <div style="max-width:1200px;margin:0 auto;padding:80px 40px;">
@@ -1019,6 +1130,18 @@
     
     document.querySelectorAll('.genre-section').forEach(s => s.style.display = 'none');
     document.getElementById('genre' + genre).style.display = 'block';
+  };
+
+  /* ── FAQ toggle ── */
+  window.toggleFaq = function(el) {
+    const item = el.parentElement;
+    const wasOpen = item.classList.contains('open');
+    
+    // Lukk alle andre
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    
+    // Toggle denne
+    if (!wasOpen) item.classList.add('open');
   };
 
   /* ── Render leaderboard ── */
