@@ -12,7 +12,6 @@
       --surface: #111118;
       --border:  #1e1e2e;
       --accent:  #e8ff47;
-      --red:     #ff4d6d;
       --text:    #f0f0f0;
       --muted:   #666680;
       --radius:  6px;
@@ -41,94 +40,89 @@
       border-radius: 14px;
       padding: 48px 40px;
       width: 100%;
-      max-width: 420px;
+      max-width: 400px;
+      text-align: center;
       position: relative;
     }
     .logo {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
+      font-size: 2.4rem;
       letter-spacing: 2px;
       color: var(--accent);
-      text-align: center;
       margin-bottom: 4px;
     }
     .logo span { color: var(--text); }
     .subtitle {
-      text-align: center;
       color: var(--muted);
-      font-size: 0.84rem;
-      margin-bottom: 36px;
+      font-size: 0.88rem;
+      margin-bottom: 40px;
+      line-height: 1.5;
     }
 
-    /* Tabs */
-    .tabs {
+    .google-btn {
       display: flex;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 28px;
-    }
-    .tab {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      transition: background 0.2s, color 0.2s;
-    }
-    .tab.active {
-      background: var(--accent);
-      color: #0a0a0f;
-    }
-
-    .form-group { margin-bottom: 16px; }
-    .form-group label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 7px;
-    }
-    .form-group input {
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
       width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px 14px;
+      background: #fff;
+      color: #1f1f1f;
+      border: none;
+      padding: 14px 20px;
       border-radius: var(--radius);
       font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
       font-size: 0.92rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .form-group input:focus { border-color: rgba(232,255,71,0.4); }
-
-    .submit-btn {
-      width: 100%;
-      background: var(--accent);
-      color: #0a0a0f;
-      border: none;
-      padding: 13px;
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
+      letter-spacing: 0.5px;
       cursor: pointer;
-      margin-top: 8px;
       transition: opacity 0.2s, transform 0.15s;
     }
-    .submit-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .google-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    .google-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .google-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .info-box {
+      background: rgba(232,255,71,0.05);
+      border: 1px solid rgba(232,255,71,0.15);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+      text-align: left;
+    }
+    .info-box strong { color: var(--text); }
+
+    .back-link {
+      display: block;
+      margin-top: 24px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      transition: color 0.2s;
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--text); }
 
     .msg {
       margin-top: 14px;
@@ -136,66 +130,38 @@
       border-radius: var(--radius);
       font-size: 0.84rem;
       display: none;
+      text-align: left;
     }
-    .msg.error { background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.25); color: var(--red); display: block; }
-    .msg.success { background: rgba(232,255,71,0.08); border: 1px solid rgba(232,255,71,0.2); color: var(--accent); display: block; }
-
-    .back-link {
+    .msg.error {
+      background: rgba(255,77,109,0.1);
+      border: 1px solid rgba(255,77,109,0.25);
+      color: #ff4d6d;
       display: block;
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.82rem;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.2s;
     }
-    .back-link:hover { color: var(--text); }
-
-    .register-form { display: none; }
   </style>
 </head>
 <body>
   <div class="box">
     <div class="logo">VOTE<span>MY</span>AI</div>
-    <div class="subtitle">Join the community</div>
+    <p class="subtitle">Logg inn for å sende inn tracks,<br>stemme og se din profil.</p>
 
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('login')">Logg inn</button>
-      <button class="tab" onclick="showTab('register')">Registrer</button>
-    </div>
+    <button class="google-btn" id="googleBtn" onclick="loginWithGoogle()">
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Fortsett med Google
+    </button>
 
-    <!-- LOGIN -->
-    <div class="login-form">
-      <div class="form-group">
-        <label>E-post</label>
-        <input type="email" id="loginEmail" placeholder="din@epost.no" />
-      </div>
-      <div class="form-group">
-        <label>Passord</label>
-        <input type="password" id="loginPassword" placeholder="••••••••"
-          onkeydown="if(event.key==='Enter') login()" />
-      </div>
-      <button class="submit-btn" id="loginBtn" onclick="login()">Logg inn</button>
-      <div class="msg" id="loginMsg"></div>
-    </div>
+    <div class="msg" id="errorMsg"></div>
 
-    <!-- REGISTER -->
-    <div class="register-form">
-      <div class="form-group">
-        <label>Brukernavn</label>
-        <input type="text" id="regUsername" placeholder="aimaster99" />
-      </div>
-      <div class="form-group">
-        <label>E-post</label>
-        <input type="email" id="regEmail" placeholder="din@epost.no" />
-      </div>
-      <div class="form-group">
-        <label>Passord</label>
-        <input type="password" id="regPassword" placeholder="Minst 6 tegn"
-          onkeydown="if(event.key==='Enter') register()" />
-      </div>
-      <button class="submit-btn" id="registerBtn" onclick="register()">Opprett konto</button>
-      <div class="msg" id="registerMsg"></div>
+    <div class="divider">hvorfor google?</div>
+
+    <div class="info-box">
+      <strong>Trygt og enkelt.</strong> Vi lagrer aldri passordet ditt.
+      Google håndterer all innlogging – du trenger bare én konto du allerede har.
     </div>
 
     <a href="/" class="back-link">← Tilbake til forsiden</a>
@@ -209,93 +175,37 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   /* ── Sjekk om allerede innlogget ── */
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) window.location.href = '/profile.html';
+  try {
+    const { data } = await sb.auth.getSession();
+    if (data?.session) window.location.href = '/profile.html';
+  } catch(e) {}
 
-  /* ── Tab-bytte ── */
-  window.showTab = function(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    document.querySelector('.login-form').style.display    = tab === 'login'    ? 'block' : 'none';
-    document.querySelector('.register-form').style.display = tab === 'register' ? 'block' : 'none';
-  };
-
-  /* ── Logg inn ── */
-  window.login = async function() {
-    const email    = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const btn      = document.getElementById('loginBtn');
-    const msg      = document.getElementById('loginMsg');
-
-    if (!email || !password) {
-      showMsg(msg, 'error', 'Fyll inn e-post og passord.');
-      return;
-    }
-
+  /* ── Google innlogging ── */
+  window.loginWithGoogle = async function() {
+    const btn = document.getElementById('googleBtn');
     btn.disabled = true;
-    btn.textContent = 'Logger inn...';
+    btn.textContent = 'Kobler til Google...';
 
-    const { error } = await sb.auth.signInWithPassword({ email, password });
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/profile.html'
+      }
+    });
 
     if (error) {
-      showMsg(msg, 'error', 'Feil e-post eller passord.');
+      const msg = document.getElementById('errorMsg');
+      msg.className = 'msg error';
+      msg.textContent = 'Noe gikk galt. Prøv igjen.';
       btn.disabled = false;
-      btn.textContent = 'Logg inn';
-    } else {
-      window.location.href = '/';
+      btn.innerHTML = `<svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg> Fortsett med Google`;
     }
   };
-
-  /* ── Registrer ── */
-  window.register = async function() {
-    const username = document.getElementById('regUsername').value.trim();
-    const email    = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const btn      = document.getElementById('registerBtn');
-    const msg      = document.getElementById('registerMsg');
-
-    if (!username || !email || !password) {
-      showMsg(msg, 'error', 'Fyll inn alle feltene.');
-      return;
-    }
-    if (password.length < 6) {
-      showMsg(msg, 'error', 'Passordet må være minst 6 tegn.');
-      return;
-    }
-    if (username.length < 3) {
-      showMsg(msg, 'error', 'Brukernavnet må være minst 3 tegn.');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Oppretter konto...';
-
-    const { data, error } = await sb.auth.signUp({ email, password });
-
-    if (error) {
-      showMsg(msg, 'error', error.message);
-      btn.disabled = false;
-      btn.textContent = 'Opprett konto';
-      return;
-    }
-
-    // Lag profil
-    if (data.user) {
-      await sb.from('profiles').insert({
-        id: data.user.id,
-        username: username,
-      });
-    }
-
-    showMsg(msg, 'success', '✅ Konto opprettet! Sjekk e-posten din for bekreftelse.');
-    btn.disabled = false;
-    btn.textContent = 'Opprett konto';
-  };
-
-  function showMsg(el, type, text) {
-    el.className = `msg ${type}`;
-    el.textContent = text;
-  }
 </script>
 </body>
 </html>
