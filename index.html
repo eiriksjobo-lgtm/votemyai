@@ -776,85 +776,59 @@
 <div class="toast" id="toast"></div>
 
 <!-- ── JAVASCRIPT ──────────────────────────────────────────────── -->
-<script>
-  /* ── Demo data (replace with real DB later) ── */
-  const DEMO_TRACKS = [
-    {
-      id: 1,
-      ytId: 'dQw4w9WgXcQ',
-      title: 'Neon Dreams',
-      tool: 'Suno',
-      genre: 'Electronic',
-      author: '@aiwave',
-      votes: 312,
-    },
-    {
-      id: 2,
-      ytId: 'hY7m5jjJ9fQ',
-      title: 'Midnight Protocol',
-      tool: 'Udio',
-      genre: 'Cinematic',
-      author: '@synthcraft',
-      votes: 214,
-    },
-    {
-      id: 3,
-      ytId: 'L_jWHffIx5E',
-      title: 'Chrome City',
-      tool: 'Suno',
-      genre: 'Hip-Hop',
-      author: '@beatz_ai',
-      votes: 189,
-    },
-    {
-      id: 4,
-      ytId: 'C0DPdy98e4c',
-      title: 'Solar Wind',
-      tool: 'Udio',
-      genre: 'Pop',
-      author: '@udiofan99',
-      votes: 133,
-    },
-    {
-      id: 5,
-      ytId: 'xvFZjo5PgG0',
-      title: 'Binary Heart',
-      tool: 'ElevenLabs',
-      genre: 'Rock',
-      author: '@vocalai',
-      votes: 97,
-    },
-    {
-      id: 6,
-      ytId: 'ZbZSe6N_BXs',
-      title: 'Pixel Rain',
-      tool: 'Suno',
-      genre: 'Electronic',
-      author: '@pixelwave',
-      votes: 76,
-    },
-  ];
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  /* ── State ── */
-  let tracks = JSON.parse(localStorage.getItem('vma_tracks') || 'null') || DEMO_TRACKS;
-  let voted  = JSON.parse(localStorage.getItem('vma_voted')  || '[]');
-  let lastVoteTime = JSON.parse(localStorage.getItem('vma_lastVote') || '{}');
+  /* ── Supabase-tilkobling ── */
+  const SUPABASE_URL = 'https://pkpkgaaowtcmuqzgqvda.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_px-Cw2XvKCGQKff0bb22uQ_ufIJchQw';
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  function save() {
-    localStorage.setItem('vma_tracks', JSON.stringify(tracks));
-    localStorage.setItem('vma_voted',  JSON.stringify(voted));
-    localStorage.setItem('vma_lastVote', JSON.stringify(lastVoteTime));
+  /* ── Hjelpefunksjoner ── */
+  function esc(str) {
+    return String(str).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  function extractYtId(url) {
+    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  /* ── Sjekk om bruker allerede har stemt (localStorage) ── */
+  function getVoted() {
+    return JSON.parse(localStorage.getItem('vma_voted') || '[]');
+  }
+  function addVoted(id) {
+    const v = getVoted();
+    v.push(id);
+    localStorage.setItem('vma_voted', JSON.stringify(v));
   }
 
   /* ── Render tracks ── */
-  function renderTracks() {
+  function renderTracks(tracks) {
     const sorted = [...tracks].sort((a,b) => b.votes - a.votes).slice(0, 6);
-    const grid = document.getElementById('tracksGrid');
+    const voted  = getVoted();
+    const grid   = document.getElementById('tracksGrid');
+
+    if (sorted.length === 0) {
+      grid.innerHTML = `<div style="color:var(--muted);grid-column:1/-1;text-align:center;padding:60px 0">
+        Ingen tracks ennå – vær den første til å sende inn! 🎵</div>`;
+      return;
+    }
+
     grid.innerHTML = sorted.map((t, i) => `
       <div class="track-card rank-${i+1}">
         <div class="rank-badge">${i+1}</div>
         <div class="video-wrapper">
-          <iframe src="https://www.youtube.com/embed/${t.ytId}?rel=0&modestbranding=1"
+          <iframe src="https://www.youtube.com/embed/${esc(t.yt_id)}?rel=0&modestbranding=1"
             allowfullscreen loading="lazy"></iframe>
         </div>
         <div class="track-info">
@@ -865,12 +839,13 @@
           </div>
           <div class="vote-row">
             <button class="vote-btn ${voted.includes(t.id) ? 'voted' : ''}"
-              onclick="vote(${t.id})"
+              id="votebtn-${t.id}"
+              onclick="window.vote('${t.id}')"
               ${voted.includes(t.id) ? 'disabled' : ''}>
               ${voted.includes(t.id) ? '✓ Voted' : '▲ Vote'}
             </button>
             <div>
-              <span class="vote-count">${t.votes}</span>
+              <span class="vote-count" id="votecount-${t.id}">${t.votes}</span>
               <span class="vote-label">votes</span>
             </div>
           </div>
@@ -880,18 +855,26 @@
   }
 
   /* ── Render leaderboard ── */
-  function renderLeaderboard() {
+  function renderLeaderboard(tracks) {
     const sorted = [...tracks].sort((a,b) => b.votes - a.votes);
-    const max = sorted[0]?.votes || 1;
-    const tbody = document.getElementById('leaderboardBody');
+    const max    = sorted[0]?.votes || 1;
+    const tbody  = document.getElementById('leaderboardBody');
+
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:40px">
+        Ingen tracks ennå</td></tr>`;
+      return;
+    }
+
     tbody.innerHTML = sorted.map((t, i) => `
       <tr>
         <td><span class="lb-rank ${i < 3 ? 'top' : ''}">${i+1}</span></td>
         <td><div style="width:56px;height:36px;border-radius:4px;background:#222;overflow:hidden">
-          <img src="https://img.youtube.com/vi/${t.ytId}/mqdefault.jpg"
+          <img src="https://img.youtube.com/vi/${esc(t.yt_id)}/mqdefault.jpg"
                alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
         </div></td>
-        <td><div class="lb-title">${esc(t.title)}</div><div style="font-size:0.75rem;color:var(--muted)">${esc(t.author)}</div></td>
+        <td><div class="lb-title">${esc(t.title)}</div>
+            <div style="font-size:0.75rem;color:var(--muted)">${esc(t.author)}</div></td>
         <td><span class="lb-tool">${esc(t.tool)}</span></td>
         <td><span class="lb-votes">${t.votes}</span></td>
         <td>
@@ -903,69 +886,130 @@
     `).join('');
   }
 
-  /* ── Vote logic (IP-limited via localStorage + 24h cooldown per track) ── */
-  function vote(id) {
+  /* ── Last inn alle tracks fra Supabase ── */
+  async function loadTracks() {
+    const { data, error } = await sb
+      .from('tracks')
+      .select('*')
+      .order('votes', { ascending: false });
+
+    if (error) {
+      console.error('Feil ved lasting:', error);
+      showToast('⚠️ Kunne ikke laste tracks.');
+      return [];
+    }
+    return data || [];
+  }
+
+  /* ── Stem på en track ── */
+  window.vote = async function(id) {
+    const voted = getVoted();
     if (voted.includes(id)) return;
 
-    const now = Date.now();
-    const lastTime = lastVoteTime[id] || 0;
-    if (now - lastTime < 24 * 60 * 60 * 1000) {
-      showToast('You already voted on this track today!');
+    // Deaktiver knappen med én gang
+    const btn = document.getElementById(`votebtn-${id}`);
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+    // Hent nåværende stemmeantall
+    const { data: track, error: fetchErr } = await sb
+      .from('tracks')
+      .select('votes')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !track) {
+      showToast('⚠️ Noe gikk galt. Prøv igjen.');
+      if (btn) { btn.disabled = false; btn.textContent = '▲ Vote'; }
       return;
     }
 
-    const track = tracks.find(t => t.id === id);
-    if (!track) return;
-    track.votes++;
-    voted.push(id);
-    lastVoteTime[id] = now;
-    save();
-    renderTracks();
-    renderLeaderboard();
-    showToast(`🔥 Voted for "${track.title}"!`);
-  }
+    // Oppdater stemmeantall
+    const { error: updateErr } = await sb
+      .from('tracks')
+      .update({ votes: track.votes + 1 })
+      .eq('id', id);
 
-  /* ── Submit track ── */
-  function submitTrack() {
+    if (updateErr) {
+      showToast('⚠️ Kunne ikke registrere stemme.');
+      if (btn) { btn.disabled = false; btn.textContent = '▲ Vote'; }
+      return;
+    }
+
+    // Lagre at denne brukeren har stemt
+    addVoted(id);
+
+    // Oppdater UI
+    if (btn) { btn.classList.add('voted'); btn.textContent = '✓ Voted'; }
+    const countEl = document.getElementById(`votecount-${id}`);
+    if (countEl) countEl.textContent = track.votes + 1;
+
+    showToast('🔥 Stemme registrert!');
+
+    // Last inn på nytt for leaderboard
+    const tracks = await loadTracks();
+    renderLeaderboard(tracks);
+  };
+
+  /* ── Send inn ny track ── */
+  window.submitTrack = async function() {
     const url   = document.getElementById('ytInput').value.trim();
     const title = document.getElementById('trackTitle').value.trim();
     const tool  = document.getElementById('trackTool').value;
     const genre = document.getElementById('trackGenre').value;
 
     if (!url || !title || !tool || !genre) {
-      showToast('⚠️ Please fill in all required fields.');
+      showToast('⚠️ Fyll inn alle påkrevde felt.');
       return;
     }
 
     const ytId = extractYtId(url);
     if (!ytId) {
-      showToast('⚠️ Invalid YouTube URL.');
+      showToast('⚠️ Ugyldig YouTube-lenke.');
       return;
     }
 
-    const newTrack = {
-      id: Date.now(),
-      ytId,
+    const submitBtn = document.querySelector('#submit .btn-primary');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sender inn...'; }
+
+    const { error } = await sb.from('tracks').insert({
       title,
+      yt_id:  ytId,
       tool,
       genre,
-      author: '@you',
-      votes: 0,
-    };
-    tracks.unshift(newTrack);
-    save();
-    renderTracks();
-    renderLeaderboard();
-    showToast('✅ Track submitted! Go vote for it.');
-    // reset form
-    ['ytInput','trackTitle','trackPrompt'].forEach(id => document.getElementById(id).value = '');
-    ['trackTool','trackGenre'].forEach(id => document.getElementById(id).selectedIndex = 0);
-    document.getElementById('previewBox').innerHTML = '<span>Your video preview will appear here</span>';
-    document.getElementById('submit').scrollIntoView({behavior:'smooth'});
-  }
+      author: '@anon',
+      votes:  0,
+    });
 
-  /* ── YouTube preview ── */
-  function previewYT() {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit for Voting'; }
+
+    if (error) {
+      showToast('⚠️ Kunne ikke sende inn. Prøv igjen.');
+      console.error(error);
+      return;
+    }
+
+    showToast('✅ Track sendt inn! Den vises nå på siden.');
+
+    // Nullstill skjema
+    ['ytInput','trackTitle','trackPrompt'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    ['trackTool','trackGenre'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.selectedIndex = 0;
+    });
+    document.getElementById('previewBox').innerHTML =
+      '<span>Your video preview will appear here</span>';
+
+    // Last inn på nytt
+    const tracks = await loadTracks();
+    renderTracks(tracks);
+    renderLeaderboard(tracks);
+  };
+
+  /* ── YouTube forhåndsvisning ── */
+  window.previewYT = function() {
     const url  = document.getElementById('ytInput').value;
     const ytId = extractYtId(url);
     const box  = document.getElementById('previewBox');
@@ -977,39 +1021,25 @@
     } else {
       box.innerHTML = '<span>Your video preview will appear here</span>';
     }
-  }
-
-  /* ── Helpers ── */
-  function extractYtId(url) {
-    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    return m ? m[1] : null;
-  }
-
-  function esc(str) {
-    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3200);
-  }
+  };
 
   /* ── Modal ── */
-  function openModal() {
+  window.openModal = function() {
     document.getElementById('modalOverlay').classList.add('open');
-  }
-  function closeModal(e) {
-    if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
-  }
-  function closeModalDirect() {
+  };
+  window.closeModal = function(e) {
+    if (e.target === document.getElementById('modalOverlay')) window.closeModalDirect();
+  };
+  window.closeModalDirect = function() {
     document.getElementById('modalOverlay').classList.remove('open');
-  }
+  };
 
-  /* ── Init ── */
-  renderTracks();
-  renderLeaderboard();
+  /* ── Oppstart ── */
+  (async () => {
+    const tracks = await loadTracks();
+    renderTracks(tracks);
+    renderLeaderboard(tracks);
+  })();
 </script>
 </body>
 </html>
