@@ -734,6 +734,34 @@
   </div>
 </div>
 
+<!-- ABOUT -->
+<section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:80px 40px;">
+  <div style="max-width:900px;margin:0 auto;text-align:center;">
+    <div class="section-label">🎵 About Us</div>
+    <h2 style="font-family:var(--font-head);font-size:clamp(2rem,4vw,3rem);letter-spacing:1px;text-transform:uppercase;margin-bottom:20px;">
+      The Future of Music is Here
+    </h2>
+    <p style="color:var(--muted);font-size:1.05rem;line-height:1.8;max-width:700px;margin:0 auto 32px;">
+      VoteMyAI is a community-driven platform where anyone can discover, share, and vote on AI-generated music. 
+      Whether you're creating with Suno, Udio, or any other AI tool – this is your stage.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;margin-top:48px;">
+      <div>
+        <div style="font-family:var(--font-head);font-size:2.5rem;color:var(--accent);margin-bottom:8px;" id="aboutStatTracks">0</div>
+        <div style="font-size:0.8rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Tracks Submitted</div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-head);font-size:2.5rem;color:var(--accent);margin-bottom:8px;" id="aboutStatVotes">0</div>
+        <div style="font-size:0.8rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Total Votes</div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-head);font-size:2.5rem;color:var(--accent);margin-bottom:8px;">100%</div>
+        <div style="font-size:0.8rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Community Driven</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- GENRE FILTER -->
 <div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:20px 0;position:sticky;top:64px;z-index:50;backdrop-filter:blur(16px);">
   <div style="max-width:1200px;margin:0 auto;padding:0 40px;">
@@ -1011,9 +1039,8 @@
 <footer>
   <div class="footer-logo">VOTE<span>MY</span>AI</div>
   <div class="footer-links">
-    <a href="#">Terms</a>
-    <a href="#">Privacy</a>
-    <a href="#">Contact</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="mailto:contact@votemyai.com">Contact</a>
   </div>
   <div class="footer-copy">© 2025 VoteMyAI – All rights reserved.</div>
 </footer>
@@ -1356,6 +1383,13 @@
     const tracks = await loadTracks();
     renderTracks(tracks);
     renderLeaderboard(tracks);
+    
+    // Oppdater About-stats
+    const totalVotes = tracks.reduce((sum, t) => sum + (t.votes || 0), 0);
+    const aboutTracks = document.getElementById('aboutStatTracks');
+    const aboutVotes = document.getElementById('aboutStatVotes');
+    if (aboutTracks) aboutTracks.textContent = tracks.length;
+    if (aboutVotes) aboutVotes.textContent = totalVotes;
   })();
 </script>
 </body>
