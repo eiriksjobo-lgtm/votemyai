@@ -222,6 +222,26 @@
       font-size: 0.9rem;
     }
 
+    /* Tabs */
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
     /* ── CONFIRM MODAL ── */
     .modal-overlay {
       position: fixed; inset: 0;
@@ -327,6 +347,12 @@
   </div>
 
   <div class="admin-content">
+    <!-- Tabs -->
+    <div style="display:flex;gap:12px;margin-bottom:32px;border-bottom:1px solid var(--border);padding-bottom:0">
+      <button class="tab-btn active" onclick="showTab('tracks')">Tracks</button>
+      <button class="tab-btn" onclick="showTab('users')">Brukere</button>
+    </div>
+
     <!-- Stats -->
     <div class="stats-row">
       <div class="stat-card">
@@ -338,28 +364,49 @@
         <div class="stat-value" id="statVotes">–</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Topp track</div>
-        <div class="stat-value" id="statTop" style="font-size:1.1rem;margin-top:4px">–</div>
+        <div class="stat-label">Totale brukere</div>
+        <div class="stat-value" id="statUsers">–</div>
       </div>
     </div>
 
-    <!-- Tracks table -->
-    <div class="section-title">Alle Tracks</div>
-    <table class="tracks-table">
-      <thead>
-        <tr>
-          <th>Thumbnail</th>
-          <th>Tittel</th>
-          <th>Tool</th>
-          <th>Stemmer</th>
-          <th>Dato</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="tracksBody">
-        <tr><td colspan="6"><div class="empty-state">Laster...</div></td></tr>
-      </tbody>
-    </table>
+    <!-- TRACKS TAB -->
+    <div id="tracksTab">
+      <div class="section-title">Alle Tracks</div>
+      <table class="tracks-table">
+        <thead>
+          <tr>
+            <th>Thumbnail</th>
+            <th>Tittel</th>
+            <th>Tool</th>
+            <th>Stemmer</th>
+            <th>Dato</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tracksBody">
+          <tr><td colspan="6"><div class="empty-state">Laster...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- USERS TAB -->
+    <div id="usersTab" style="display:none">
+      <div class="section-title">Alle Brukere</div>
+      <table class="tracks-table">
+        <thead>
+          <tr>
+            <th>Brukernavn</th>
+            <th>E-post</th>
+            <th>Opprettet</th>
+            <th>Tracks</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="usersBody">
+          <tr><td colspan="5"><div class="empty-state">Laster...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -421,6 +468,18 @@
     document.getElementById('passwordInput').value = '';
   };
 
+  /* ── Tab switching ── */
+  window.showTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tracksTab').style.display = tab === 'tracks' ? 'block' : 'none';
+    document.getElementById('usersTab').style.display = tab === 'users' ? 'block' : 'none';
+    if (tab === 'users' && !window.usersLoaded) {
+      loadUsers();
+      window.usersLoaded = true;
+    }
+  };
+
   /* ── Last inn tracks ── */
   async function loadTracks() {
     const { data, error } = await sb
@@ -437,10 +496,8 @@
 
     // Oppdater stats
     const totalVotes = tracks.reduce((sum, t) => sum + (t.votes || 0), 0);
-    const topTrack   = [...tracks].sort((a,b) => b.votes - a.votes)[0];
     document.getElementById('statTracks').textContent = tracks.length;
     document.getElementById('statVotes').textContent  = totalVotes;
-    document.getElementById('statTop').textContent    = topTrack ? topTrack.title : '–';
 
     // Render tabell
     const tbody = document.getElementById('tracksBody');
@@ -500,6 +557,81 @@
     showToast(`✅ "${pendingDeleteName}" er slettet.`);
     pendingDeleteId   = null;
     pendingDeleteName = null;
+    loadTracks();
+  };
+
+  /* ── Last inn brukere ── */
+  async function loadUsers() {
+    // Hent alle profiler
+    const { data: profiles, error: profError } = await sb
+      .from('profiles')
+      .select('id, username, created_at');
+
+    if (profError) {
+      showToast('⚠️ Kunne ikke laste brukere.');
+      return;
+    }
+
+    const users = profiles || [];
+
+    // Hent antall tracks per bruker
+    const { data: trackCounts } = await sb
+      .from('tracks')
+      .select('user_id');
+
+    const countMap = {};
+    (trackCounts || []).forEach(t => {
+      if (t.user_id) countMap[t.user_id] = (countMap[t.user_id] || 0) + 1;
+    });
+
+    // Oppdater stats
+    document.getElementById('statUsers').textContent = users.length;
+
+    // Render tabell
+    const tbody = document.getElementById('usersBody');
+    if (users.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Ingen brukere ennå.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td><strong>@${esc(u.username || 'anon')}</strong></td>
+        <td><span style="font-size:0.82rem;color:var(--muted)">Bruker-ID: ${u.id.substring(0,8)}...</span></td>
+        <td><span class="date-cell">${formatDate(u.created_at)}</span></td>
+        <td><span style="font-family:var(--font-head);font-size:1.2rem;color:var(--accent)">${countMap[u.id] || 0}</span></td>
+        <td>
+          <button class="delete-btn" onclick="window.askDeleteUser('${u.id}', '${esc(u.username || 'anon')}')">
+            🗑 Slett
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── Slett bruker ── */
+  window.askDeleteUser = function(id, username) {
+    if (!confirm(`Er du sikker på at du vil slette brukeren @${username}?\n\nDette sletter også alle deres tracks og stemmer.\n\nDette kan IKKE angres.`)) {
+      return;
+    }
+    deleteUser(id, username);
+  };
+
+  async function deleteUser(userId, username) {
+    // Slett brukerens tracks først
+    await sb.from('tracks').delete().eq('user_id', userId);
+    // Slett brukerens stemmer
+    await sb.from('votes').delete().eq('user_id', userId);
+    // Slett profil
+    const { error } = await sb.from('profiles').delete().eq('id', userId);
+
+    if (error) {
+      showToast('⚠️ Kunne ikke slette bruker.');
+      return;
+    }
+
+    showToast(`✅ Bruker @${username} er slettet.`);
+    loadUsers();
     loadTracks();
   };
 
