@@ -1019,6 +1019,14 @@
 
   /* ── Send inn ny track ── */
   window.submitTrack = async function() {
+    // Sjekk innlogging
+    const { data } = await sb.auth.getSession();
+    if (!data?.session) {
+      showToast('⚠️ Du må logge inn for å sende inn tracks.');
+      setTimeout(() => window.location.href = '/login.html', 1500);
+      return;
+    }
+
     const url   = document.getElementById('ytInput').value.trim();
     const title = document.getElementById('trackTitle').value.trim();
     const tool  = document.getElementById('trackTool').value;
@@ -1043,8 +1051,9 @@
       yt_id:  ytId,
       tool,
       genre,
-      author: '@anon',
+      author: '@' + (data.session.user.user_metadata?.name || data.session.user.email.split('@')[0]),
       votes:  0,
+      user_id: data.session.user.id,
     });
 
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit for Voting'; }
