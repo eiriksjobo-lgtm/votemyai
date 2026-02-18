@@ -351,6 +351,7 @@
     <div style="display:flex;gap:12px;margin-bottom:32px;border-bottom:1px solid var(--border);padding-bottom:0">
       <button class="tab-btn active" onclick="showTab('tracks')">Tracks</button>
       <button class="tab-btn" onclick="showTab('users')">Brukere</button>
+      <button class="tab-btn" onclick="showTab('inbox')">Inbox</button>
     </div>
 
     <!-- Stats -->
@@ -403,6 +404,25 @@
           </tr>
         </thead>
         <tbody id="usersBody">
+          <tr><td colspan="5"><div class="empty-state">Laster...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- INBOX TAB -->
+    <div id="inboxTab" style="display:none">
+      <div class="section-title">Meldinger</div>
+      <table class="tracks-table">
+        <thead>
+          <tr>
+            <th>Fra</th>
+            <th>Emne</th>
+            <th>Melding</th>
+            <th>Dato</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="inboxBody">
           <tr><td colspan="5"><div class="empty-state">Laster...</div></td></tr>
         </tbody>
       </table>
@@ -474,9 +494,14 @@
     event.target.classList.add('active');
     document.getElementById('tracksTab').style.display = tab === 'tracks' ? 'block' : 'none';
     document.getElementById('usersTab').style.display = tab === 'users' ? 'block' : 'none';
+    document.getElementById('inboxTab').style.display = tab === 'inbox' ? 'block' : 'none';
     if (tab === 'users' && !window.usersLoaded) {
       loadUsers();
       window.usersLoaded = true;
+    }
+    if (tab === 'inbox' && !window.inboxLoaded) {
+      loadInbox();
+      window.inboxLoaded = true;
     }
   };
 
@@ -633,6 +658,53 @@
     showToast(`✅ Bruker @${username} er slettet.`);
     loadUsers();
     loadTracks();
+  };
+
+  /* ── Last inn inbox ── */
+  async function loadInbox() {
+    const { data: messages, error } = await sb
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      showToast('⚠️ Kunne ikke laste meldinger.');
+      return;
+    }
+
+    const msgs = messages || [];
+    const tbody = document.getElementById('inboxBody');
+
+    if (msgs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Ingen meldinger ennå.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = msgs.map(m => `
+      <tr style="${m.read ? 'opacity:0.6' : ''}">
+        <td>
+          <div><strong>${esc(m.name)}</strong></div>
+          <div style="font-size:0.78rem;color:var(--muted)">${esc(m.email)}</div>
+        </td>
+        <td>${esc(m.subject)}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ${esc(m.message)}
+        </td>
+        <td><span class="date-cell">${formatDate(m.created_at)}</span></td>
+        <td>
+          <button class="delete-btn" onclick="window.viewMessage('${m.id}', \`${esc(m.name)}\`, \`${esc(m.email)}\`, \`${esc(m.subject)}\`, \`${esc(m.message).replace(/`/g, '\\`')}\`)">
+            👁 Les
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── Vis melding ── */
+  window.viewMessage = function(id, name, email, subject, message) {
+    alert(`Fra: ${name} (${email})\nEmne: ${subject}\n\n${message}`);
+    // Marker som lest
+    sb.from('messages').update({ read: true }).eq('id', id).then(() => loadInbox());
   };
 
   /* ── Helpers ── */
